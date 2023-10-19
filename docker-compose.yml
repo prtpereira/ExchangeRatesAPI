@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  app:
+    image: 'exchange-rates-api:latest'
+    build:
+      context: .
+      target: release_img
+    container_name: app_bvg
+    depends_on:
+      - postgresqldb
+    ports:
+      - '8081:8080'
+    expose:
+      - 8080
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresqldb:5432/exchange_rates_api_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - REFRESH_INTERNAL_RATES_SECS=60
+      - RATES_ENDPOINT=http://api.exchangerate.host/live
+      - ACCESS_KEY=b753b41b60860422a27edbcd09505282
+    volumes:
+      - .:/app
+    command: java -jar exchange-rates-api.jar
+
+  postgresqldb:
+    image: postgres:13.3
+    container_name: postgresqldb_bvg
+    ports:
+      - '5432:5432'
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=exchange_rates_api_db
+
+#  tests:
+#    build:
+#      context: .
+#      target: release_img
+#    depends_on:
+#      - postgres_test
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_test:54322/exrates_test
+#      - SPRING_DATASOURCE_USERNAME=test
+#      - SPRING_DATASOURCE_PASSWORD=test
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=create
+#    command: /app/mvnw test
+
+#  postgres_test:
+#    image: postgres:13.3
+#    container_name: postgres_test
+#    ports:
+#      - '5432:5432'
+#    expose:
+#      - 5432
+#    environment:
+#      - POSTGRES_USER=test
+#      - POSTGRES_PASSWORD=test
+#      - POSTGRES_DB=exrates_test
+#    volumes:
+#      - ./db/docker:/docker-entrypoint-initdb.d/
+#
